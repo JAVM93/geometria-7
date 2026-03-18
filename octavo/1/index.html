@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hola Mundo 3D - Liceo Taller San Miguel</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #F5F5F5; } /* Gris fondo institucional */
+        canvas { display: block; outline: none; }
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif; color: #BE1522; font-size: 20px; font-weight: bold;
+        }
+    </style>
+    
+    <!-- Import Maps para Three.js y sus complementos (Textos 3D y Controles) -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="loading">Cargando experiencia 3D...</div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+        // 1. CONFIGURACIÓN BASE (Basado en la paleta institucional)
+        const colors = {
+            rojoLTSM: 0xBE1522,
+            rojoClaro: 0xF2C6C9,
+            grisFondo: 0xF5F5F5,
+            textoBase: 0x2C2C2C,
+            blanco: 0xFFFFFF
+        };
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(colors.grisFondo);
+        
+        // Efecto de niebla sutil para darle profundidad y elegancia al fondo
+        scene.fog = new THREE.Fog(colors.grisFondo, 15, 40);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2, 18);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // Activar sombras de alta calidad
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // 2. ILUMINACIÓN (Estudio fotográfico elegante)
+        const ambientLight = new THREE.AmbientLight(colors.blanco, 1.2);
+        scene.add(ambientLight);
+
+        const spotLight = new THREE.SpotLight(colors.blanco, 150);
+        spotLight.position.set(5, 15, 10);
+        spotLight.angle = Math.PI / 4;
+        spotLight.penumbra = 0.5;
+        spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
+        scene.add(spotLight);
+
+        // Luz de relleno con el Rojo Claro institucional para dar un tono cálido
+        const fillLight = new THREE.DirectionalLight(colors.rojoClaro, 0.5);
+        fillLight.position.set(-10, 5, 5);
+        scene.add(fillLight);
+
+        // 3. MATERIALES ELEGANTES
+        // Material brillante y pulido para el texto principal
+        const matPrincipal = new THREE.MeshPhysicalMaterial({
+            color: colors.rojoLTSM,
+            metalness: 0.2,
+            roughness: 0.1,
+            clearcoat: 0.8, // Le da un efecto de esmalte brillante
+            clearcoatRoughness: 0.2
+        });
+
+        // Material mate y sobrio para el texto secundario
+        const matSecundario = new THREE.MeshStandardMaterial({
+            color: colors.textoBase,
+            metalness: 0.3,
+            roughness: 0.6
+        });
+
+        // 4. CARGA DE FUENTE Y CREACIÓN DE TEXTOS
+        // Usamos Helvetiker que es el equivalente en ThreeJS más cercano a Arial
+        const loader = new FontLoader();
+        loader.load('https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+            
+            document.getElementById('loading').style.display = 'none';
+
+            // --- TÍTULO (Equivalente a H1 - 20pt Bold) ---
+            const geoH1 = new TextGeometry('HOLA MUNDO', {
+                font: font, size: 1.5, height: 0.4, curveSegments: 12,
+                bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.02, bevelSegments: 5
+            });
+            geoH1.computeBoundingBox();
+            const widthH1 = geoH1.boundingBox.max.x - geoH1.boundingBox.min.x;
+            
+            const meshH1 = new THREE.Mesh(geoH1, matPrincipal);
+            meshH1.position.set(-widthH1 / 2, 1, 0); // Centrar
+            meshH1.castShadow = true;
+            scene.add(meshH1);
+
+            // --- BORDE INFERIOR ROJO (Regla de la guía para H1) ---
+            const geoLinea = new THREE.BoxGeometry(widthH1, 0.1, 0.2);
+            const meshLinea = new THREE.Mesh(geoLinea, matPrincipal);
+            meshLinea.position.set(0, 0.5, 0.1);
+            meshLinea.castShadow = true;
+            scene.add(meshLinea);
+
+            // --- SUBTÍTULO (Equivalente a H2 - 14pt Bold) ---
+            const geoH2 = new TextGeometry('Liceo Taller San Miguel', {
+                font: font, size: 0.7, height: 0.2, curveSegments: 12,
+                bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.01, bevelSegments: 3
+            });
+            geoH2.computeBoundingBox();
+            const widthH2 = geoH2.boundingBox.max.x - geoH2.boundingBox.min.x;
+            
+            const meshH2 = new THREE.Mesh(geoH2, matSecundario);
+            meshH2.position.set(-widthH2 / 2, -0.6, 0.1);
+            meshH2.castShadow = true;
+            scene.add(meshH2);
+        });
+
+        // 5. SUELO (Base blanca elegante que recibe sombras)
+        const geoSuelo = new THREE.PlaneGeometry(100, 100);
+        const matSuelo = new THREE.MeshStandardMaterial({ 
+            color: colors.blanco, 
+            roughness: 0.1, // Ligeramente reflectante
+            metalness: 0.1
+        });
+        const suelo = new THREE.Mesh(geoSuelo, matSuelo);
+        suelo.rotation.x = -Math.PI / 2;
+        suelo.position.y = -1.5;
+        suelo.receiveShadow = true;
+        scene.add(suelo);
+
+        // 6. CONTROLES INTERACTIVOS (Giro elegante)
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Movimiento fluido
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;    // Rotación automática como de exhibición
+        controls.autoRotateSpeed = 1.0;
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; // No permite ver por debajo del suelo
+
+        // 7. BUCLE DE ANIMACIÓN
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Necesario para el damping y autoRotate
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 8. RESPONSIVIDAD
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
