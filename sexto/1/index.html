@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador Geométrico 3D - 7mo Grado</title>
+    
+    <!-- Tailwind CSS para el diseño rápido y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js para los gráficos 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls para permitir al usuario girar las figuras -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- MathJax para mostrar fórmulas matemáticas bonitas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            cursor: grab;
+        }
+        
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+
+        /* Estilos personalizados para las animaciones y sombras */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-shape {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-shape:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-shape.active {
+            background-color: #4f46e5; /* Indigo 600 */
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .math-formula {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #4f46e5;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row text-gray-800">
+
+    <!-- Lado Izquierdo: Visor 3D -->
+    <div class="w-full md:w-1/2 h-1/2 md:h-full relative bg-gray-900 flex flex-col">
+        <div class="absolute top-4 left-4 z-10 text-white pointer-events-none">
+            <h2 class="text-2xl font-bold tracking-wider drop-shadow-md" id="shape-title-3d">Cubo</h2>
+            <p class="text-sm opacity-80">Arrastra para girar | Rueda para hacer zoom</p>
+        </div>
+        <div id="canvas-container" class="flex-grow"></div>
+    </div>
+
+    <!-- Lado Derecho: Controles, Información y Quiz -->
+    <div class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto p-6 md:p-8 bg-gray-50 flex flex-col gap-6">
+        
+        <!-- Título -->
+        <div>
+            <h1 class="text-3xl font-extrabold text-indigo-700 mb-2">Laboratorio 3D</h1>
+            <p class="text-gray-600">Selecciona un sólido geométrico para explorar sus propiedades matemáticas.</p>
+        </div>
+
+        <!-- Selector de Figuras -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button onclick="changeShape(0)" class="btn-shape active px-4 py-3 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-center" id="btn-0">Cubo</button>
+            <button onclick="changeShape(1)" class="btn-shape px-4 py-3 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-center" id="btn-1">Esfera</button>
+            <button onclick="changeShape(2)" class="btn-shape px-4 py-3 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-center" id="btn-2">Cilindro</button>
+            <button onclick="changeShape(3)" class="btn-shape px-4 py-3 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-center" id="btn-3">Pirámide</button>
+        </div>
+
+        <!-- Panel de Fórmulas -->
+        <div class="glass-panel p-6 rounded-2xl border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Propiedades
+            </h3>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider">Área Superficial (A)</p>
+                <div class="math-formula" id="formula-area">$$A = 6a^2$$</div>
+                <p class="text-xs text-gray-500 mt-1" id="desc-area">donde \(a\) es la longitud de la arista.</p>
+            </div>
+            
+            <div>
+                <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider">Volumen (V)</p>
+                <div class="math-formula" id="formula-vol">$$V = a^3$$</div>
+                <p class="text-xs text-gray-500 mt-1" id="desc-vol">El espacio tridimensional que ocupa.</p>
+            </div>
+        </div>
+
+        <!-- Panel de Quiz -->
+        <div class="glass-panel p-6 rounded-2xl border border-gray-100 mt-auto">
+            <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Ponte a prueba
+            </h3>
+            <p class="text-gray-700 font-medium mb-4" id="quiz-question">Si un cubo tiene una arista de 3 cm, ¿cuál es su volumen?</p>
+            
+            <div class="flex flex-col gap-2" id="quiz-options">
+                <!-- Las opciones se generan con JS -->
+            </div>
+            
+            <div id="quiz-feedback" class="mt-4 p-3 rounded-lg hidden font-medium text-center transition-all">
+                <!-- Mensaje de feedback -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Lógica de la Aplicación -->
+    <script>
+        // --- BASE DE DATOS DE LAS FIGURAS ---
+        const shapesData = [
+            {
+                id: 'cubo',
+                name: 'Cubo',
+                color: 0x3b82f6, // Azul
+                formulas: {
+                    area: 'A = 6a^2',
+                    areaDesc: 'donde \\(a\\) es la longitud de la arista (lado).',
+                    vol: 'V = a^3',
+                    volDesc: 'El cubo de la longitud de su arista.'
+                },
+                quiz: {
+                    question: 'Si un cubo tiene una arista de 3 cm, ¿cuál es su volumen?',
+                    options: ['9 cm³', '18 cm³', '27 cm³'],
+                    correct: 2 // Índice de la respuesta correcta (0-based)
+                }
+            },
+            {
+                id: 'esfera',
+                name: 'Esfera',
+                color: 0xef4444, // Rojo
+                formulas: {
+                    area: 'A = 4\\pi r^2',
+                    areaDesc: 'donde \\(r\\) es el radio de la esfera.',
+                    vol: 'V = \\frac{4}{3}\\pi r^3',
+                    volDesc: 'Requiere conocer el radio al cubo.'
+                },
+                quiz: {
+                    question: '¿Qué variable geométrica es la única que necesitas conocer para calcular el volumen de una esfera?',
+                    options: ['La altura', 'El radio', 'El diámetro de la base'],
+                    correct: 1
+                }
+            },
+            {
+                id: 'cilindro',
+                name: 'Cilindro',
+                color: 0x10b981, // Verde
+                formulas: {
+                    area: 'A = 2\\pi r(r + h)',
+                    areaDesc: 'Área de las dos bases circulares más el área lateral.',
+                    vol: 'V = \\pi r^2 h',
+                    volDesc: 'Área de la base (\\(\\pi r^2\\)) multiplicada por la altura (\\(h\\)).'
+                },
+                quiz: {
+                    question: 'La base de un cilindro tiene forma de...',
+                    options: ['Círculo', 'Cuadrado', 'Esfera'],
+                    correct: 0
+                }
+            },
+            {
+                id: 'piramide',
+                name: 'Pirámide (Base Cuadrada)',
+                color: 0xf59e0b, // Amarillo/Naranja
+                formulas: {
+                    area: 'A = A_b + A_l',
+                    areaDesc: 'Área de la base (\\(A_b\\)) más el Área lateral (\\(A_l\\) - los 4 triángulos).',
+                    vol: 'V = \\frac{1}{3} A_b h',
+                    volDesc: 'Un tercio del área de la base por la altura.'
+                },
+                quiz: {
+                    question: 'El volumen de una pirámide es exactamente ______ del volumen de un prisma que tenga su misma base y altura.',
+                    options: ['La mitad (1/2)', 'Un tercio (1/3)', 'Un cuarto (1/4)'],
+                    correct: 1
+                }
+            }
+        ];
+
+        let currentShapeIndex = 0;
+        let meshes = []; // Para guardar las referencias a las figuras 3D
+
+        // --- CONFIGURACIÓN DE THREE.JS ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        // Cámara
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 2, 6);
+
+        // Renderizador
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // Controles de Órbita (Mouse/Touch)
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enablePan = false;
+        controls.minDistance = 3;
+        controls.maxDistance = 10;
+
+        // Luces
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7);
+        scene.add(directionalLight);
+        
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(-5, -10, -7);
+        scene.add(backLight);
+
+        // --- CREACIÓN DE GEOMETRÍAS ---
+        // 1. Cubo
+        const geoCube = new THREE.BoxGeometry(2, 2, 2);
+        const matCube = new THREE.MeshStandardMaterial({ color: shapesData[0].color, roughness: 0.3, metalness: 0.1 });
+        const meshCube = new THREE.Mesh(geoCube, matCube);
+        scene.add(meshCube);
+        meshes.push(meshCube);
+
+        // 2. Esfera
+        const geoSphere = new THREE.SphereGeometry(1.3, 32, 32);
+        const matSphere = new THREE.MeshStandardMaterial({ color: shapesData[1].color, roughness: 0.2, metalness: 0.2 });
+        const meshSphere = new THREE.Mesh(geoSphere, matSphere);
+        scene.add(meshSphere);
+        meshes.push(meshSphere);
+
+        // 3. Cilindro
+        const geoCyl = new THREE.CylinderGeometry(1, 1, 2.5, 32);
+        const matCyl = new THREE.MeshStandardMaterial({ color: shapesData[2].color, roughness: 0.3, metalness: 0.1 });
+        const meshCyl = new THREE.Mesh(geoCyl, matCyl);
+        scene.add(meshCyl);
+        meshes.push(meshCyl);
+
+        // 4. Pirámide (Cono con 4 lados)
+        const geoPyr = new THREE.ConeGeometry(1.5, 2.5, 4);
+        const matPyr = new THREE.MeshStandardMaterial({ color: shapesData[3].color, roughness: 0.3, metalness: 0.1 });
+        const meshPyr = new THREE.Mesh(geoPyr, matPyr);
+        // Ajustar rotación para que las caras queden planas hacia la cámara
+        meshPyr.rotation.y = Math.PI / 4; 
+        scene.add(meshPyr);
+        meshes.push(meshPyr);
+
+        // Ocultar todos menos el primero
+        meshes.forEach((mesh, index) => {
+            mesh.visible = (index === 0);
+        });
+
+        // Bucle de Animación
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotación suave automática de la figura visible
+            if (meshes[currentShapeIndex]) {
+                meshes[currentShapeIndex].rotation.y += 0.005;
+                meshes[currentShapeIndex].rotation.x += 0.002;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Manejo de Redimensionamiento
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // --- LÓGICA DE INTERFAZ Y ACTUALIZACIÓN ---
+        
+        function updateMathJax() {
+            // Le dice a MathJax que vuelva a renderizar las fórmulas en la página
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch((err) => console.log(err.message));
+            }
+        }
+
+        function checkAnswer(selectedIndex, correctIndex) {
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.remove('hidden');
+            
+            // Bloquear botones después de responder
+            const btns = document.querySelectorAll('.quiz-btn');
+            btns.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.innerHTML = '¡Correcto! 🎉 Excelente trabajo.';
+                feedbackEl.className = 'mt-4 p-3 rounded-lg font-medium text-center bg-green-100 text-green-800';
+                btns[selectedIndex].classList.add('bg-green-500', 'text-white', 'border-green-500');
+            } else {
+                feedbackEl.innerHTML = 'Incorrecto. Intenta revisar las fórmulas de arriba.';
+                feedbackEl.className = 'mt-4 p-3 rounded-lg font-medium text-center bg-red-100 text-red-800';
+                btns[selectedIndex].classList.add('bg-red-500', 'text-white', 'border-red-500');
+                btns[correctIndex].classList.add('bg-green-500', 'text-white', 'border-green-500'); // Mostrar la correcta
+            }
+        }
+
+        function buildQuiz(quizData) {
+            document.getElementById('quiz-question').textContent = quizData.question;
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = ''; // Limpiar opciones anteriores
+            document.getElementById('quiz-feedback').classList.add('hidden'); // Ocultar feedback
+
+            quizData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-btn w-full text-left px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors focus:outline-none';
+                btn.textContent = `${String.fromCharCode(65 + index)}. ${opt}`; // A. Opción, B. Opción...
+                btn.onclick = () => checkAnswer(index, quizData.correct);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function changeShape(index) {
+            currentShapeIndex = index;
+            const data = shapesData[index];
+
+            // 1. Actualizar el Visor 3D
+            meshes.forEach((mesh, i) => {
+                mesh.visible = (i === index);
+                // Reiniciar rotación para que se vea bien al aparecer
+                if(i === index) {
+                    mesh.rotation.set(0, i===3 ? Math.PI/4 : 0, 0); 
+                }
+            });
+            document.getElementById('shape-title-3d').textContent = data.name;
+
+            // 2. Actualizar Botones Activos
+            document.querySelectorAll('.btn-shape').forEach((btn, i) => {
+                if(i === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // 3. Actualizar Textos y Fórmulas
+            document.getElementById('formula-area').innerHTML = `$$${data.formulas.area}$$`;
+            document.getElementById('desc-area').innerHTML = data.formulas.areaDesc;
+            document.getElementById('formula-vol').innerHTML = `$$${data.formulas.vol}$$`;
+            document.getElementById('desc-vol').innerHTML = data.formulas.volDesc;
+            
+            // Re-renderizar las matemáticas
+            updateMathJax();
+
+            // 4. Actualizar Quiz
+            buildQuiz(data.quiz);
+        }
+
+        // Inicializar la primera figura al cargar la página
+        window.onload = () => {
+            changeShape(0);
+        };
+
+    </script>
+</body>
+</html>
