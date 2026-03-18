@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Diseño - 3D Elegante</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505; /* Fondo muy oscuro para elegancia */
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Contenedores para WebGL (Fondo) y CSS3D (Texto) */
+        #webgl-container, #css3d-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #css3d-container { pointer-events: none; } /* Permite que el ratón controle la cámara 3D */
+
+        /* EL DOCUMENTO - Maquetado exacto con tu guía */
+        .documento-3d {
+            width: 800px; /* Ancho simulado del documento */
+            background-color: rgba(245, 245, 245, 0.95); /* Gris fondo #F5F5F5 con ligera transparencia */
+            padding: 60px;
+            box-shadow: 0 20px 50px rgba(190, 21, 34, 0.15), 0 0 1px rgba(255,255,255,0.5) inset;
+            border-radius: 4px;
+            color: #2C2C2C; /* Texto base */
+            pointer-events: auto; /* Permite hacer scroll en el documento si fuera necesario */
+            backdrop-filter: blur(10px);
+            border-left: 5px solid #BE1522; /* Acento institucional */
+        }
+
+        /* Tipografía y Estructura */
+        .documento-3d h1 {
+            color: #BE1522; /* Rojo LTSM */
+            font-size: 20pt;
+            font-weight: bold;
+            border-bottom: 2px solid #BE1522;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .documento-3d h2 {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2C2C2C;
+            margin-top: 30px;
+        }
+
+        .documento-3d h3 {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #2C2C2C;
+            margin-top: 20px;
+        }
+
+        .documento-3d p {
+            font-size: 11pt;
+            text-align: justify;
+            line-height: 1.4;
+            color: #2C2C2C;
+        }
+
+        .documento-3d .muted { color: #888888; font-size: 10pt; }
+        
+        .documento-3d .callout {
+            background-color: #F2C6C9; /* Rojo claro */
+            padding: 15px;
+            border-left: 4px solid #BE1522;
+            font-size: 10pt;
+            margin: 20px 0;
+        }
+
+        /* Tabla elegante */
+        .documento-3d table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 11pt;
+        }
+        
+        .documento-3d th {
+            background-color: #BE1522;
+            color: #FFFFFF;
+            text-align: left;
+            padding: 10px;
+            font-weight: bold;
+        }
+        
+        .documento-3d td {
+            padding: 10px;
+            border-bottom: 1px solid #cccccc;
+        }
+
+        /* Encabezado y Pie de página simulados */
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 6px solid #BE1522;
+            padding-bottom: 10px;
+            margin-bottom: 40px;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+        
+        .doc-footer {
+            display: flex;
+            justify-content: space-between;
+            border-top: 4px solid #BE1522;
+            padding-top: 10px;
+            margin-top: 40px;
+            font-size: 10pt;
+        }
+    </style>
+
+    <!-- Import Maps para Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Aquí pondremos los renders 3D -->
+    <div id="webgl-container"></div>
+    <div id="css3d-container"></div>
+
+    <!-- El contenido HTML que se convertirá en un objeto 3D -->
+    <div id="contenido-texto" style="display: none;">
+        <div class="documento-3d">
+            
+            <div class="doc-header">
+                <span>Liceo Taller San Miguel — Estándar institucional DOCX</span>
+                <span class="muted">Versión 2025</span>
+            </div>
+
+            <h1>Guía de diseño de documentos</h1>
+            <p><i>Pereira, Risaralda — Colombia</i></p>
+
+            <div class="callout">
+                <strong>Paleta Institucional:</strong><br>
+                Rojo LTSM: #BE1522 | Rojo claro: #F2C6C9 | Gris fondo: #F5F5F5 | Texto base: #2C2C2C | Texto muted: #888888 | Blanco: #FFFFFF
+            </div>
+
+            <h2>Escala tipográfica — Arial</h2>
+            <p>Todo el documento debe basarse en la fuente Arial, declarada en cada TextRun para evitar problemas de herencia.</p>
+
+            <h3>Nivel terciario (H3)</h3>
+            <p>Texto de cuerpo del documento, justificado, interlineado 1.4. El formato debe ser estrictamente seguido para mantener la identidad visual del colegio en todas las comunicaciones formales e informales.</p>
+
+            <h2>Configuración de página</h2>
+            <table>
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Valor</th>
+                    <th>Nota</th>
+                </tr>
+                <tr>
+                    <td>Tamaño</td>
+                    <td>Carta (12240 × 15840 DXA)</td>
+                    <td>No A4 — Colombia usa carta</td>
+                </tr>
+                <tr>
+                    <td>Márgenes laterales</td>
+                    <td>1080 DXA (~0.75")</td>
+                    <td>Top/Bottom: 1440 (1")</td>
+                </tr>
+                <tr>
+                    <td>Ancho útil</td>
+                    <td>10 080 DXA</td>
+                    <td>Usar para tablas full-width</td>
+                </tr>
+                <tr>
+                    <td>Unidades tablas</td>
+                    <td>WidthType.DXA</td>
+                    <td>Nunca PERCENTAGE (rompe Docs)</td>
+                </tr>
+            </table>
+
+            <div class="doc-footer">
+                <span>Pereira, Colombia</span>
+                <span>Página 1</span>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+        // 1. CONFIGURACIÓN BÁSICA DE ESCENA Y CÁMARA
+        const scene = new THREE.Scene();
+        // Niebla elegante para el fondo
+        scene.fog = new THREE.FogExp2(0x050505, 0.001);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+        camera.position.set(0, 0, 1500); // Nos alejamos para ver el documento completo
+
+        // 2. RENDERIZADOR WEBGL (Fondo y partículas)
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('webgl-container').appendChild(renderer.domElement);
+
+        // 3. RENDERIZADOR CSS3D (Para el texto DOM flotante)
+        const cssRenderer = new CSS3DRenderer();
+        cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('css3d-container').appendChild(cssRenderer.domElement);
+
+        // 4. CREAR EL OBJETO DE TEXTO 3D
+        const element = document.getElementById('contenido-texto').firstElementChild;
+        const cssObject = new CSS3DObject(element);
+        // Ajustamos la escala para que no sea gigante en el mundo 3D
+        cssObject.scale.set(0.5, 0.5, 0.5); 
+        scene.add(cssObject);
+
+        // 5. PARTÍCULAS ELEGANTES (Partículas de fondo en colores del colegio)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 500;
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorArray = new Float32Array(particlesCount * 3);
+
+        const color1 = new THREE.Color(0xBE1522); // Rojo LTSM
+        const color2 = new THREE.Color(0x888888); // Gris muted
+        const color3 = new THREE.Color(0xffffff); // Blanco
+
+        for(let i = 0; i < particlesCount * 3; i+=3) {
+            // Posiciones aleatorias alrededor del documento
+            posArray[i] = (Math.random() - 0.5) * 3000;
+            posArray[i+1] = (Math.random() - 0.5) * 3000;
+            posArray[i+2] = (Math.random() - 0.5) * 3000 - 500;
+
+            // Colores aleatorios de la paleta
+            const mix = Math.random();
+            let pColor = color3;
+            if(mix > 0.6) pColor = color1;
+            else if(mix > 0.3) pColor = color2;
+
+            colorArray[i] = pColor.r;
+            colorArray[i+1] = pColor.g;
+            colorArray[i+2] = pColor.b;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 5,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // 6. CONTROLES DE CÁMARA (Mouse)
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 500;
+        controls.maxDistance = 2500;
+
+        // 7. ANIMACIÓN (Bucle)
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = clock.getElapsedTime();
+
+            // Animación suave de flotación para el documento
+            cssObject.position.y = Math.sin(time * 0.5) * 20;
+            cssObject.rotation.y = Math.sin(time * 0.2) * 0.05;
+            cssObject.rotation.x = Math.cos(time * 0.2) * 0.02;
+
+            // Rotación lenta de las partículas
+            particlesMesh.rotation.y = time * 0.02;
+            particlesMesh.rotation.x = time * 0.01;
+
+            controls.update();
+            
+            // Renderizamos ambas capas (Fondo y Texto)
+            renderer.render(scene, camera);
+            cssRenderer.render(scene, camera);
+        }
+
+        animate();
+
+        // 8. REDIMENSIONAMIENTO RESPONSIVO
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
